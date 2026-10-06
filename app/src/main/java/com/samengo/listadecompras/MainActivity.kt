@@ -17,10 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.samengo.listadecompras.ui.theme.ListadecomprasTheme
-
 
 // ---------------------------------------------------------
 // PRODUTO
@@ -31,12 +30,10 @@ class Produto(
     val preco: Double,
     val quantidade: Int
 ) {
-
     fun calcularTotal(): Double {
         return preco * quantidade
     }
 }
-
 
 // ---------------------------------------------------------
 // MAIN ACTIVITY
@@ -55,9 +52,90 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// ---------------------------------------------------------
+// FORMULÁRIO (ENTRADA DE DADOS)
+// ---------------------------------------------------------
+
+@Composable
+fun Formulario(
+    nome: String,
+    preco: String,
+    quantidade: String,
+    onNomeChange: (String) -> Unit,
+    onPrecoChange: (String) -> Unit,
+    onQuantidadeChange: (String) -> Unit,
+    onCadastrar: () -> Unit
+) {
+    Text("Nome do Produto:")
+
+    TextField(
+        value = nome,
+        onValueChange = onNomeChange,
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    Text("Preço:")
+
+    TextField(
+        value = preco,
+        onValueChange = onPrecoChange,
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    Text("Quantidade:")
+
+    TextField(
+        value = quantidade,
+        onValueChange = onQuantidadeChange,
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    Button(
+        onClick = onCadastrar,
+        modifier = Modifier.padding(top = 8.dp)
+    ) {
+        Text("Cadastrar")
+    }
+}
 
 // ---------------------------------------------------------
-// LISTA DE COMPRAS
+// LISTA DE PRODUTOS (PRODUTOS CADASTRADOS)
+// ---------------------------------------------------------
+
+@Composable
+fun ListaProdutos(
+    produtos: List<Produto>
+) {
+    Text(
+        "Quantidade de produtos cadastrados: ${produtos.size}",
+        modifier = Modifier.padding(top = 16.dp)
+    )
+
+    for (produto in produtos) {
+        Text(
+            "${produto.nome} - " +
+                    "${produto.quantidade} x R$ ${produto.preco} = " +
+                    "R$ ${produto.calcularTotal()}"
+        )
+    }
+}
+
+// ---------------------------------------------------------
+// RESUMO (TOTAL DA COMPRA)
+// ---------------------------------------------------------
+
+@Composable
+fun Resumo(
+    total: Double
+) {
+    Text(
+        "Total da compra: R$ $total",
+        modifier = Modifier.padding(top = 16.dp)
+    )
+}
+
+// ---------------------------------------------------------
+// LISTA DE COMPRAS (COMPOSABLE PRINCIPAL)
 // ---------------------------------------------------------
 
 @Composable
@@ -88,168 +166,63 @@ fun ListaCompras() {
         mutableStateOf(0.0)
     }
 
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
 
-        // -------------------------------------------------
-        // TÍTULO
-        // -------------------------------------------------
-
         Text("Lista de Compras")
 
-
-        // -------------------------------------------------
-        // NOME DO PRODUTO
-        // -------------------------------------------------
-
-        Text("Nome do Produto:")
-
-        TextField(
-            value = nome,
-            onValueChange = {
-                nome = it
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-
-        // -------------------------------------------------
-        // PREÇO
-        // -------------------------------------------------
-
-        Text("Preço:")
-
-        TextField(
-            value = preco,
-            onValueChange = {
-                preco = it
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-
-        // -------------------------------------------------
-        // QUANTIDADE
-        // -------------------------------------------------
-
-        Text("Quantidade:")
-
-        TextField(
-            value = quantidade,
-            onValueChange = {
-                quantidade = it
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-
-        // -------------------------------------------------
-        // BOTÃO CADASTRAR
-        // -------------------------------------------------
-
-        Button(
-            onClick = {
-
-                // Impede o cadastro se algum campo estiver vazio
+        // 1. Formulário (Entrada de Dados)
+        Formulario(
+            nome = nome,
+            preco = preco,
+            quantidade = quantidade,
+            onNomeChange = { nome = it },
+            onPrecoChange = { preco = it },
+            onQuantidadeChange = { quantidade = it },
+            onCadastrar = {
                 if (
                     nome.isNotBlank() &&
                     preco.isNotBlank() &&
                     quantidade.isNotBlank()
                 ) {
-
-                    // Conversão do preço
                     val precoDouble = preco.toDoubleOrNull()
-
-                    // Conversão da quantidade
                     val quantidadeInt = quantidade.toIntOrNull()
 
-                    // Verifica se as conversões são válidas
-                    if (
-                        precoDouble != null &&
-                        quantidadeInt != null
-                    ) {
-
-                        // Cria o produto
+                    if (precoDouble != null && quantidadeInt != null) {
                         val produto = Produto(
                             nome = nome,
                             preco = precoDouble,
                             quantidade = quantidadeInt
                         )
 
-                        // Adiciona o produto na lista
                         produtos.add(produto)
-
-                        // Soma o total
                         total += produto.calcularTotal()
 
-                        // Limpa os campos
                         nome = ""
                         preco = ""
                         quantidade = ""
                     }
                 }
-            },
-            modifier = Modifier.padding(top = 8.dp)
-        ) {
-
-            Text("Cadastrar")
-        }
-
-
-        // -------------------------------------------------
-        // QUANTIDADE DE PRODUTOS
-        // -------------------------------------------------
-
-        Text(
-            "Quantidade de produtos cadastrados: ${produtos.size}",
-            modifier = Modifier.padding(top = 16.dp)
+            }
         )
 
+        // 2. Lista de Produtos Cadastrados
+        ListaProdutos(produtos = produtos)
 
-        // -------------------------------------------------
-        // LISTA DE PRODUTOS
-        // -------------------------------------------------
+        // 3. Resumo da Compra
+        Resumo(total = total)
 
-        for (produto in produtos) {
-
-            Text(
-                "${produto.nome} - " +
-                        "${produto.quantidade} x R$ ${produto.preco} = " +
-                        "R$ ${produto.calcularTotal()}"
-            )
-        }
-
-
-        // -------------------------------------------------
-        // TOTAL DA COMPRA
-        // -------------------------------------------------
-
-        Text(
-            "Total da compra: R$ $total",
-            modifier = Modifier.padding(top = 16.dp)
-        )
-
-
-        // -------------------------------------------------
-        // BOTÃO LIMPAR LISTA
-        // -------------------------------------------------
-
+        // Botão Limpar Lista
         Button(
             onClick = {
-
-                // Limpa todos os produtos
                 produtos.clear()
-
-                // Zera o total
                 total = 0.0
             },
             modifier = Modifier.padding(top = 8.dp)
         ) {
-
             Text("Limpar Lista")
         }
     }
